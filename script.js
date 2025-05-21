@@ -264,3 +264,34 @@ window.editarSaldo = async function (id) {
     .eq('id', id)
   if (!error) Swal.fire('Saldo actualizado', '', 'success')
 }
+
+
+window.verResumenSemanal = async function () {
+  const sieteDiasAtras = new Date();
+  sieteDiasAtras.setDate(sieteDiasAtras.getDate() - 7);
+  const desdeFecha = sieteDiasAtras.toISOString();
+
+  const { data } = await supabase
+    .from('operaciones')
+    .select('*')
+    .eq('usuario_id', usuarioActual.id)
+    .gte('fecha', desdeFecha)
+
+  let abiertas = 0, cerradas = 0, total = 0;
+
+  data.forEach(op => {
+    total++;
+    if (op.estado === 'abierta') abiertas++;
+    else if (op.estado === 'cerrada') cerradas++;
+  });
+
+  Swal.fire({
+    title: 'Resumen semanal',
+    html: `
+      <p>Total operaciones: <b>${total}</b></p>
+      <p>Abiertas: <b>${abiertas}</b></p>
+      <p>Cerradas: <b>${cerradas}</b></p>
+    `,
+    icon: 'info'
+  });
+}
