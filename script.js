@@ -27,7 +27,8 @@ window.login = async function () {
 
   console.log("Login exitoso:", data)
   usuarioActual = data
-  document.getElementById('login').classList.add('hidden')
+  const loginDiv = document.getElementById('login');
+  loginDiv.parentNode.removeChild(loginDiv);
   document.getElementById('app').classList.remove('hidden')
   document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
   cargarHistorial()
