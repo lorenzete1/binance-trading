@@ -137,3 +137,107 @@ function cargarWidget(ticker) {
     "studies": ["MACD@tv-basicstudies"],
   });
 }
+async function login() {
+  const email = document.getElementById('username').value
+  const password = document.getElementById('password').value
+
+  const { data: user, error } = await supabase
+    .from('usuarios')
+    .select('*')
+    .eq('email', email)
+    .eq('password', password)
+    .single()
+
+  if (user) {
+    localStorage.setItem('usuario_id', user.id)
+    localStorage.setItem('es_admin', user.es_admin)
+    document.getElementById('login').classList.add('hidden')
+    document.getElementById('app').classList.remove('hidden')
+    actualizarSaldo(user.saldo)
+    cargarHistorial()
+  } else {
+    document.getElementById('login-error').textContent = 'Usuario o contraseña incorrectos'
+  }
+}
+
+function actualizarSaldo(saldo) {
+  docum
+async function abrirOperacion() {
+  const usuario_id = localStorage.getItem('usuario_id')
+  const instrumento = document.getElementById('instrumento').value
+  const tipo = 'compra'
+  const cantidad = 1
+
+  const precio_entrada = await obtenerPrecioActual(instrumento)
+  const costo = cantidad * precio_entrada
+
+  const { data: usuario } = await supabase
+    .from('usuarios')
+    .select('saldo')
+    .eq('id', usuario_id)
+    .single()
+
+  if (usuario.saldo >= costo) {
+    await supabase.from('operaciones').insert([{
+      usuario_id, instrumento, tipo, cantidad, precio_entrada, abierta: true, fecha_apertura: new Date().toISOString()
+    }])
+
+    await supabase
+      .from('usuarios')
+      .update({ saldo: usuario.saldo - costo })
+      .eq('id', usuario_id)
+
+    actualizarSaldo(usuario.saldo - costo)
+    cargarHistorial()
+  } else {
+    alert('Saldo insuficiente.')
+  }
+}
+async function cerrarOperacion() {
+  const usuario_id = localStorage.getItem('usuario_id')
+
+  const { data: abiertas } = await supabase
+    .from('operaciones')
+    .select('*')
+    .eq('usuario_id', usuario_id)
+    .eq('abierta', true)
+
+  if (!abiertas.length) {
+    alert('No hay operaciones abiertas.')
+    return
+  }
+
+  const operacion = abiertas[0]
+  const precio_salida = await obtenerPrecioActual(operacion.instrumento)
+  const ganancia = (precio_salida - operacion.precio_entrada) * operacion.cantidad
+
+  await supabase
+    .from('operaciones')
+    .update({
+      abierta: false,
+      precio_salida,
+      fecha_cierre: new Date().toISOString()
+    })
+    .eq('id', operacion.id)
+
+  const { data: usuario } = await supabase
+    .from('usuarios')
+    .select('saldo')
+    .eq('id', usuario_id)
+    .single()
+
+  const nuevoSaldo = usuario.saldo + operacion.cantidad * precio_salida
+  await supabase.from('usuarios').update({ saldo: nuevoSaldo }).eq('id', usuario_id)
+
+  actualizarSaldo(nuevoSaldo)
+  cargarHistorial()
+}
+async function obtenerPrecioActual(instrumento) {
+  const preciosSimulados = {
+    'BTCUSD': 27000,
+    'ETHUSD': 1800,
+    'AAPL': 150,
+    'EURUSD': 1.08
+  }
+  return preciosSimulados[instrumento] || 1
+}
