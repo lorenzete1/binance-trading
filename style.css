@@ -36,3 +36,8 @@ main {
 #tradingview-widget {
   flex: 1;
 }
+
+#app {
+  transform: scale(0.7);
+  transform-origin: top center;
+}
