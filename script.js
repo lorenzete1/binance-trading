@@ -1,92 +1,133 @@
-let saldo = 250;
-let operacionAbierta = null;
 
-function login() {
-  const user = document.getElementById("username").value;
-  const pass = document.getElementById("password").value;
+const supabase = supabase.createClient(
+  'https://fmhnzooghyfltnkjiwzf.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtaG56b29naHlmbHRua2ppd3pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc4Mzg3ODcsImV4cCI6MjA2MzQxNDc4N30.-5zCQNWfj9BiME2NSIwtAocIvvNn8NvY1f0CKwmeFrA'
+);
 
-  if (user === "Mario" && pass === "Aa123456") {
+let user = null;
+let userId = null;
+let saldo = 0;
+
+async function login() {
+  const email = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    document.getElementById("login-error").textContent = "Credenciales incorrectas.";
+  } else {
+    user = data.user;
+    userId = user.id;
     document.getElementById("login").classList.add("hidden");
     document.getElementById("app").classList.remove("hidden");
+    document.getElementById("bienvenida").textContent = "Cuenta de " + email;
+
+    if (email === "lorenzete@proton.me") {
+      document.getElementById("admin").classList.remove("hidden");
+    }
+
+    await cargarSaldo();
+    await cargarHistorial();
     cargarWidget(document.getElementById("instrumento").value);
-  } else {
-    document.getElementById("login-error").textContent = "Usuario o contraseña incorrectos.";
   }
+}
+
+async function registrar() {
+  const email = prompt("Correo:");
+  const password = prompt("Contraseña:");
+  const { error } = await supabase.auth.signUp({ email, password });
+  if (error) alert("Error: " + error.message);
+  else alert("Cuenta creada. Revisa tu correo si se requiere verificación.");
+}
+
+async function guardarNuevaPass() {
+  const nuevaPass = document.getElementById("nueva-pass").value;
+  const { error } = await supabase.auth.updateUser({ password: nuevaPass });
+  if (error) alert("Error: " + error.message);
+  else {
+    alert("Contraseña actualizada.");
+    document.getElementById("cambiar-pass").classList.add("hidden");
+  }
+}
+
+function mostrarCambioPass() {
+  document.getElementById("cambiar-pass").classList.remove("hidden");
+}
+
+async function cargarSaldo() {
+  const { data } = await supabase.from("usuarios").select("saldo").eq("id", userId).single();
+  saldo = data?.saldo ?? 250;
+  await supabase.from("usuarios").upsert({ id: userId, saldo });
+  actualizarSaldo();
 }
 
 function actualizarSaldo() {
-  document.getElementById("saldo").textContent = `Saldo: €${saldo.toFixed(2)}`;
+  document.getElementById("saldo").textContent = "Saldo: €" + saldo.toFixed(2);
 }
 
-function retirarFondos() {
-  alert(`Has retirado €${saldo.toFixed(2)} a tu cuenta bancaria. ¡Gracias por usar Binance Trading!`);
+async function retirarFondos() {
   saldo = 0;
+  await supabase.from("usuarios").upsert({ id: userId, saldo });
   actualizarSaldo();
+  alert("Saldo retirado.");
 }
 
-function abrirOperacion() {
-  if (operacionAbierta) {
-    alert("Ya hay una operación abierta.");
-    return;
-  }
-
+async function abrirOperacion() {
   const instrumento = document.getElementById("instrumento").value;
-  operacionAbierta = {
-    instrumento,
-    precio: obtenerPrecioActual()
-  };
-
-  agregarHistorial(`Abierta operación en ${instrumento} a €${operacionAbierta.precio.toFixed(2)}`);
-}
-
-function cerrarOperacion() {
-  if (!operacionAbierta) {
-    alert("No hay ninguna operación abierta.");
-    return;
-  }
-
-  const precioCierre = obtenerPrecioActual();
-  const ganancia = (Math.random() - 0.5) * 20; // valor simulado
-  saldo += ganancia;
+  saldo -= 10;
+  await supabase.from("usuarios").upsert({ id: userId, saldo });
+  await supabase.from("operaciones").insert({ user_id: userId, tipo: "abrir", instrumento });
+  await cargarHistorial();
   actualizarSaldo();
-
-  agregarHistorial(`Cerrada operación en ${operacionAbierta.instrumento} a €${precioCierre.toFixed(2)} (${ganancia >= 0 ? "+" : ""}${ganancia.toFixed(2)}€)`);
-
-  operacionAbierta = null;
 }
 
-function agregarHistorial(texto) {
-  const li = document.createElement("li");
-  li.textContent = texto;
-  document.getElementById("historial").appendChild(li);
+async function cerrarOperacion() {
+  const instrumento = document.getElementById("instrumento").value;
+  saldo += 5;
+  await supabase.from("usuarios").upsert({ id: userId, saldo });
+  await supabase.from("operaciones").insert({ user_id: userId, tipo: "cerrar", instrumento });
+  await cargarHistorial();
+  actualizarSaldo();
 }
 
-function obtenerPrecioActual() {
-  return 100 + Math.random() * 1000; // Simulación
+async function cargarHistorial() {
+  const { data } = await supabase.from("operaciones").select("*").eq("user_id", userId).order("timestamp", { ascending: false });
+  const historial = document.getElementById("historial");
+  historial.innerHTML = "";
+  data.forEach(op => {
+    const li = document.createElement("li");
+    li.textContent = op.tipo + " operación en " + op.instrumento;
+    historial.appendChild(li);
+  });
 }
 
-function cambiarInstrumento() {
-  const nuevo = document.getElementById("instrumento").value;
-  cargarWidget(nuevo);
+async function cargarAdmin() {
+  const { data } = await supabase.from("operaciones").select("*").order("timestamp", { ascending: false });
+  const admin = document.getElementById("admin-operaciones");
+  admin.innerHTML = "";
+  data.forEach(op => {
+    const li = document.createElement("li");
+    li.textContent = `${op.user_id} - ${op.tipo} - ${op.instrumento}`;
+    admin.appendChild(li);
+  });
 }
 
-function cargarWidget(simbolo) {
-  document.getElementById("tradingview-widget").innerHTML = ""; // Limpiar
-
+function cargarWidget(ticker) {
+  document.getElementById("tradingview-widget").innerHTML = "";
   new TradingView.widget({
-    container_id: "tradingview-widget",
-    width: "100%",
-    height: 400,
-    symbol: simbolo,
-    interval: "5",
-    timezone: "Etc/UTC",
-    theme: "dark",
-    style: "1",
-    locale: "es",
-    toolbar_bg: "#1e1e1e",
-    enable_publishing: false,
-    allow_symbol_change: true,
-    hide_side_toolbar: false,
-    withdateranges: true,
+    "container_id": "tradingview-widget",
+    "autosize": true,
+    "symbol": ticker,
+    "interval": "D",
+    "timezone": "Etc/UTC",
+    "theme": "dark",
+    "style": "1",
+    "locale": "es",
+    "toolbar_bg": "#f1f3f6",
+    "enable_publishing": false,
+    "allow_symbol_change": true,
+    "hide_top_toolbar": false,
+    "save_image": false,
+    "studies": ["MACD@tv-basicstudies"],
   });
 }

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,26 +6,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Binance Trading - Simulador</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
   <div id="login" class="login-container">
     <h2>Iniciar sesión</h2>
-    <input type="text" id="username" placeholder="Usuario" />
+    <input type="text" id="username" placeholder="Correo electrónico" />
     <input type="password" id="password" placeholder="Contraseña" />
     <button onclick="login()">Entrar</button>
+    <button onclick="registrar()">Registrarse</button>
     <p id="login-error"></p>
   </div>
 
   <div id="app" class="app-container hidden">
     <header>
-      <h1>Cuenta de Mario</h1>
-      <span id="saldo">Saldo: €250.00</span>
+      <h1 id="bienvenida">Cuenta</h1>
+      <span id="saldo">Saldo: €0.00</span>
+      <button onclick="mostrarCambioPass()">Cambiar Contraseña</button>
       <button onclick="retirarFondos()">Retirar Fondos</button>
     </header>
 
+    <div id="cambiar-pass" class="hidden">
+      <input type="password" id="nueva-pass" placeholder="Nueva contraseña" />
+      <button onclick="guardarNuevaPass()">Guardar</button>
+    </div>
+
     <section>
       <label for="instrumento">Instrumento:</label>
-      <select id="instrumento" onchange="cambiarInstrumento()">
+      <select id="instrumento" onchange="cargarWidget(this.value)">
         <option value="BTCUSD">BTC/USD</option>
         <option value="ETHUSD">ETH/USD</option>
         <option value="AAPL">AAPL</option>
@@ -47,6 +56,13 @@
     </section>
   </div>
 
+  <div id="admin" class="app-container hidden">
+    <h2>Panel de Administrador</h2>
+    <button onclick="cargarAdmin()">Recargar</button>
+    <ul id="admin-operaciones"></ul>
+  </div>
+
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
