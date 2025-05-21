@@ -241,3 +241,19 @@ async function obtenerPrecioActual(instrumento) {
   }
   return preciosSimulados[instrumento] || 1
 }
+async function cargarHistorial() {
+  const usuario_id = localStorage.getItem('usuario_id')
+  const { data: operaciones } = await supabase
+    .from('operaciones')
+    .select('*')
+    .eq('usuario_id', usuario_id)
+    .order('fecha_apertura', { ascending: false })
+
+  const lista = document.getElementById('historial')
+  lista.innerHTML = ''
+  operaciones.forEach(op => {
+    const item = document.createElement('li')
+    item.textContent = `${op.instrumento} - ${op.tipo.toUpperCase()} - ${op.precio_entrada} → ${op.precio_salida || 'Abierta'}`
+    lista.appendChild(item)
+  })
+}
