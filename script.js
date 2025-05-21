@@ -116,3 +116,22 @@ function showToast(message) {
   toast.classList.remove('hidden')
   setTimeout(() => toast.classList.add('hidden'), 3000)
 }
+
+
+async function cargarHistorial() {
+  const { data } = await supabase
+    .from('operaciones')
+    .select('*')
+    .eq('usuario_id', usuarioActual.id)
+    .order('fecha', { ascending: false })
+
+  const lista = document.getElementById('historial')
+  lista.innerHTML = ''
+  if (data) {
+    data.forEach(op => {
+      const li = document.createElement('li')
+      li.textContent = `${op.tipo.toUpperCase()} - ${op.instrumento} - ${op.estado} - ${new Date(op.fecha).toLocaleString()}`
+      lista.appendChild(li)
+    })
+  }
+}
