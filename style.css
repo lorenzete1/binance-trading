@@ -6,18 +6,7 @@ body {
   color: #f0f0f0;
 }
 
-.hidden {
-  display: none;
-}
-
-.fade-in {
-  animation: fadeIn 1s ease-in;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+.hidden { display: none; }
 
 .centered {
   display: flex;
@@ -63,10 +52,6 @@ footer {
   padding: 10px;
   background-color: #111;
   color: #888;
-}
-
-.grafico {
-  margin-bottom: 20px;
 }
 
 #tradingview-widget {

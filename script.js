@@ -8,8 +8,9 @@ const supabase = createClient(
 let usuarioActual = null
 
 window.login = async function () {
-  const user = document.getElementById('username').value
-  const pass = document.getElementById('password').value
+  const user = document.getElementById('username').value.trim()
+  const pass = document.getElementById('password').value.trim()
+  console.log("Probando login con:", user, pass)
 
   const { data, error } = await supabase
     .from('usuarios')
@@ -20,9 +21,11 @@ window.login = async function () {
 
   if (error || !data) {
     document.getElementById('login-error').textContent = 'Usuario o contraseña incorrectos'
+    console.log("Error de Supabase:", error)
     return
   }
 
+  console.log("Login exitoso:", data)
   usuarioActual = data
   document.getElementById('login').classList.add('hidden')
   document.getElementById('app').classList.remove('hidden')
@@ -30,81 +33,4 @@ window.login = async function () {
   cargarHistorial()
   cambiarInstrumento()
   Swal.fire('Sesión iniciada', '', 'success')
-}
-
-window.abrirOperacion = async function () {
-  const instrumento = document.getElementById('instrumento').value
-  const fecha = new Date().toISOString()
-  await supabase.from('operaciones').insert([{ usuario_id: usuarioActual.id, instrumento, tipo: 'compra', fecha, estado: 'abierta' }])
-  await actualizarSaldo(-10)
-  cargarHistorial()
-  Swal.fire('Operación abierta', '', 'info')
-}
-
-window.cerrarOperacion = async function () {
-  const instrumento = document.getElementById('instrumento').value
-  const abiertas = await supabase
-    .from('operaciones')
-    .select('*')
-    .eq('usuario_id', usuarioActual.id)
-    .eq('instrumento', instrumento)
-    .eq('estado', 'abierta')
-    .limit(1)
-
-  if (abiertas.data.length > 0) {
-    const id = abiertas.data[0].id
-    await supabase.from('operaciones').update({ estado: 'cerrada' }).eq('id', id)
-    await actualizarSaldo(15)
-    cargarHistorial()
-    Swal.fire('Operación cerrada', '', 'success')
-  }
-}
-
-window.retirarFondos = async function () {
-  await actualizarSaldo(-20)
-  Swal.fire('Has retirado 20€', '', 'warning')
-}
-
-async function actualizarSaldo(cambio) {
-  const nuevoSaldo = usuarioActual.saldo + cambio
-  await supabase.from('usuarios').update({ saldo: nuevoSaldo }).eq('id', usuarioActual.id)
-  usuarioActual.saldo = nuevoSaldo
-  document.getElementById('saldo').textContent = `Saldo: €${nuevoSaldo.toFixed(2)}`
-}
-
-async function cargarHistorial() {
-  const { data } = await supabase
-    .from('operaciones')
-    .select('*')
-    .eq('usuario_id', usuarioActual.id)
-    .order('fecha', { ascending: false })
-
-  const lista = document.getElementById('historial')
-  lista.innerHTML = ''
-  if (data) {
-    data.forEach(op => {
-      const li = document.createElement('li')
-      li.textContent = `${op.tipo.toUpperCase()} - ${op.instrumento} - ${op.estado} - ${new Date(op.fecha).toLocaleString()}`
-      lista.appendChild(li)
-    })
-  }
-}
-
-window.cambiarInstrumento = function () {
-  const instrumento = document.getElementById('instrumento').value
-  document.getElementById('tradingview-widget').innerHTML = ''
-  new TradingView.widget({
-    container_id: 'tradingview-widget',
-    width: "100%",
-    height: 400,
-    symbol: instrumento,
-    interval: 'D',
-    theme: 'dark',
-    style: '1',
-    locale: 'es',
-    enable_publishing: false,
-    hide_side_toolbar: false,
-    allow_symbol_change: true,
-    studies: ['MACD@tv-basicstudies'],
-  })
 }
