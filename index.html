@@ -3,58 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Binance Trading - Simulador</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Binance Trading</title>
+  <script src="https://s3.tradingview.com/tv.js"></script>
+  <script type="module" src="script.js"></script>
 </head>
 <body>
-  <div id="login" class="login-container">
-    <h2>Iniciar sesión</h2>
-    <input type="text" id="username" placeholder="Usuario" />
+  <header>
+    <h1>Binance Trading</h1>
+  </header>
+
+  <div id="login">
+    <input type="text" id="username" placeholder="Email" />
     <input type="password" id="password" placeholder="Contraseña" />
     <button onclick="login()">Entrar</button>
-    <p id="login-error"></p>
+    <p id="login-error" style="color:red;"></p>
   </div>
 
-  <div id="app" class="app-container hidden">
-    <header>
-      <h1>Cuenta de Mario</h1>
-      <span id="saldo">Saldo: €250.00</span>
-      <button onclick="retirarFondos()">Retirar Fondos</button>
-      <button onclick="mostrarCambioContrasena()">Cambiar Contraseña</button>
-    </header>
-
-    <section>
-      <label for="instrumento">Instrumento:</label>
-      <select id="instrumento" onchange="cambiarInstrumento()">
-        <option value="BTCUSD">BTC/USD</option>
-        <option value="ETHUSD">ETH/USD</option>
-        <option value="AAPL">AAPL</option>
-        <option value="EURUSD">EUR/USD</option>
-      </select>
-    </section>
-
-    <section class="grafico">
-      <div id="tradingview-widget"></div>
-    </section>
-
-    <section class="operaciones">
-      <button onclick="abrirOperacion()">Abrir operación</button>
-      <button onclick="cerrarOperacion()">Cerrar operación</button>
-    </section>
-
-    <section>
-      <h3>Historial de Operaciones</h3>
-      <ul id="historial"></ul>
-    </section>
-
-    <section id="cambiar-pass" class="hidden">
-      <h3>Cambiar Contraseña</h3>
-      <input type="password" id="nuevaPassword" placeholder="Nueva contraseña" />
-      <button onclick="cambiarPassword()">Guardar nueva contraseña</button>
-    </section>
+  <div id="app" class="hidden">
+    <h2 id="saldo">Saldo: </h2>
+    <select id="instrumento" onchange="cambiarInstrumento()">
+      <option value="BINANCE:BTCUSDT">BTC/USDT</option>
+      <option value="BINANCE:ETHUSDT">ETH/USDT</option>
+      <option value="BINANCE:BNBUSDT">BNB/USDT</option>
+    </select>
+    <button onclick="abrirOperacion()">Abrir operación</button>
+    <button onclick="cerrarOperacion()">Cerrar operación</button>
+    <button onclick="retirarFondos()">Retirar</button>
+    <ul id="historial"></ul>
+    <div id="tradingview-widget"></div>
   </div>
-
-  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-  <script src="script.js"></script>
 </body>
 </html>
