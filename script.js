@@ -294,4 +294,3 @@ window.verResumenSemanal = async function () {
     `,
     icon: 'info'
   });
-}
