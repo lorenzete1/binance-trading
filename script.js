@@ -154,26 +154,62 @@ window.organizarHistorial = function () {
     }
   })
 }
+
+
+window.retirarFondos = async function () {
+  if (!usuarioActual) return
+
+  const { value: cantidad } = await Swal.fire({
+    title: 'Retirar fondos',
+    html: `
+      <label>Monto a retirar:</label>
+      <input type="number" id="retiro" class="swal2-input" min="1" />
+      <label>Destino:</label>
+      <select class="swal2-input" disabled>
+        <option selected>Binance Wallet</option>
+      </select>
+    `,
+    preConfirm: () => parseFloat(document.getElementById('retiro').value),
+    confirmButtonText: 'Retirar',
+    showCancelButton: true
+  })
+
+  if (!cantidad || cantidad <= 0) {
+    Swal.fire('Cantidad no válida', '', 'error')
+    return
+  }
+
+  if (cantidad > usuarioActual.saldo) {
+    Swal.fire('Saldo insuficiente', 'No puedes retirar más de tu saldo', 'error')
+    return
+  }
+
+  usuarioActual.saldo -= cantidad
+  const { error } = await supabase
+    .from('usuarios')
+    .update({ saldo: usuarioActual.saldo })
+    .eq('id', usuarioActual.id)
+
+  if (!error) {
+    document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
+    Swal.fire('Retiro exitoso', `Se ha retirado €${cantidad} a tu billetera Binance.`, 'success')
+  }
+}
+
 window.abrirAdmin = async function () {
   if (!usuarioActual || usuarioActual.email !== 'lorenzete@proton.me') {
     Swal.fire('Acceso denegado', '', 'error')
     return
   }
 
-  const { data, error } = await supabase
-    .from('operaciones')
-    .select('*')
-
-  if (error) {
-    Swal.fire('Error cargando operaciones', '', 'error')
-    return
-  }
+  const { data } = await supabase.from('operaciones').select('*')
+  if (!data) return
 
   const tabla = document.createElement('table')
   tabla.innerHTML = `
     <tr>
       <th>ID</th>
-      <th>Email</th>
+      <th>Usuario</th>
       <th>Instrumento</th>
       <th>Tipo</th>
       <th>Estado</th>
@@ -181,25 +217,20 @@ window.abrirAdmin = async function () {
       <th>Acción</th>
     </tr>
   `
-
   for (const op of data) {
     const tr = document.createElement('tr')
     tr.innerHTML = `
       <td>${op.id}</td>
       <td>${op.usuario_id}</td>
       <td><input value="${op.instrumento}" id="ins-${op.id}"/></td>
-      <td>
-        <select id="tipo-${op.id}">
-          <option value="compra" ${op.tipo === 'compra' ? 'selected' : ''}>Compra</option>
-          <option value="venta" ${op.tipo === 'venta' ? 'selected' : ''}>Venta</option>
-        </select>
-      </td>
-      <td>
-        <select id="estado-${op.id}">
-          <option value="abierta" ${op.estado === 'abierta' ? 'selected' : ''}>Abierta</option>
-          <option value="cerrada" ${op.estado === 'cerrada' ? 'selected' : ''}>Cerrada</option>
-        </select>
-      </td>
+      <td><select id="tipo-${op.id}">
+        <option value="compra" ${op.tipo === 'compra' ? 'selected' : ''}>Compra</option>
+        <option value="venta" ${op.tipo === 'venta' ? 'selected' : ''}>Venta</option>
+      </select></td>
+      <td><select id="estado-${op.id}">
+        <option value="abierta" ${op.estado === 'abierta' ? 'selected' : ''}>Abierta</option>
+        <option value="cerrada" ${op.estado === 'cerrada' ? 'selected' : ''}>Cerrada</option>
+      </select></td>
       <td><input type="datetime-local" id="fecha-${op.id}" value="${op.fecha ? new Date(op.fecha).toISOString().slice(0, 16) : ''}" /></td>
       <td><button onclick="guardarOperacion('${op.id}')">Guardar</button></td>
     `
