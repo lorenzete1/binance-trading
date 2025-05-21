@@ -126,3 +126,43 @@ window.retirarFondos = async function () {
     Swal.fire('Retiro exitoso', `Has retirado €${cantidad}`, 'info')
   }
 }
+
+
+// Cambiar contraseña
+window.cambiarPassword = async function () {
+  const nueva = prompt("Introduce nueva contraseña:")
+  if (!nueva) return
+  const { error } = await supabase
+    .from('usuarios')
+    .update({ password: nueva })
+    .eq('id', usuarioActual.id)
+  if (!error) Swal.fire('Contraseña actualizada', '', 'success')
+}
+
+// Reproducir sonido
+function playSound(tipo) {
+  const audio = new Audio(tipo === 'compra' ? 'buy.mp3' : 'sell.mp3')
+  audio.play()
+}
+
+// Panel admin
+window.abrirAdmin = async function () {
+  if (!usuarioActual?.es_admin) return
+  const { data } = await supabase.from('usuarios').select('*')
+  if (!data) return
+  let html = '<h3>Panel de Administración</h3><ul>'
+  for (const user of data) {
+    html += `<li>${user.email} - €${user.saldo.toFixed(2)} <button onclick="editarSaldo('${user.id}')">Editar</button></li>`
+  }
+  html += '</ul>'
+  Swal.fire({ html, width: 600 })
+}
+
+window.editarSaldo = async function (id) {
+  const nuevo = prompt("Nuevo saldo:")
+  const { error } = await supabase
+    .from('usuarios')
+    .update({ saldo: parseFloat(nuevo) })
+    .eq('id', id)
+  if (!error) Swal.fire('Saldo actualizado', '', 'success')
+}
