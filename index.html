@@ -1,46 +1,39 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Binance Trading</title>
-  <script src="https://s3.tradingview.com/tv.js"></script>
-  <script type="module" src="script.js" defer></script>
-  <style>
-    body { font-family: Arial, sans-serif; background: #111; color: #fff; padding: 20px; }
-    .hidden { display: none; }
-    input, select, button { margin: 5px; padding: 5px; }
-    header { display: flex; justify-content: space-between; align-items: center; }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://unpkg.com/lightweight-charts@3.4.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
   <header>
     <h1>Binance Trading</h1>
-    <div id="saldo"></div>
   </header>
 
-  <section id="login">
-    <h2>Login</h2>
-    <input type="text" id="username" placeholder="Correo" />
-    <input type="password" id="password" placeholder="Contraseña" />
-    <button onclick="login()">Entrar</button>
-    <p id="login-error" style="color:red;"></p>
-  </section>
+  <div id="login">
+    <input type="text" id="username" placeholder="Email">
+    <input type="password" id="password" placeholder="Contraseña">
+    <button onclick="login()">Iniciar sesión</button>
+    <p id="login-error" style="color: red;"></p>
+  </div>
 
-  <section id="app" class="hidden">
-    <h2>Panel de usuario</h2>
+  <div id="app" class="hidden">
+    <p id="saldo"></p>
     <select id="instrumento" onchange="cambiarInstrumento()">
       <option value="BINANCE:BTCUSDT">BTC/USDT</option>
       <option value="BINANCE:ETHUSDT">ETH/USDT</option>
     </select>
     <button onclick="abrirOperacion()">Abrir operación</button>
     <button onclick="cerrarOperacion()">Cerrar operación</button>
-    <button onclick="retirarFondos()">Retirar €20</button>
+    <button onclick="retirarFondos()">Retirar fondos</button>
 
-    <div id="tradingview-widget"></div>
-
-    <h3>Historial</h3>
     <ul id="historial"></ul>
-  </section>
+    <div id="tradingview-widget"></div>
+  </div>
+
+  <script type="module" src="script.js"></script>
 </body>
 </html>
