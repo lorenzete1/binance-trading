@@ -111,3 +111,9 @@ footer {
   cursor: pointer;
   border-radius: 6px;
 }
+
+body {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}

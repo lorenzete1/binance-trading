@@ -78,3 +78,51 @@ window.cambiarInstrumento = function () {
     studies: ['MACD@tv-basicstudies'],
   })
 }
+
+
+window.abrirOperacion = async function () {
+  if (!usuarioActual) return
+  const instrumento = document.getElementById('instrumento').value
+  const fecha = new Date().toISOString()
+
+  const { error } = await supabase
+    .from('operaciones')
+    .insert([{ usuario_id: usuarioActual.id, instrumento, tipo: 'compra', estado: 'abierta', fecha }])
+
+  if (!error) {
+    Swal.fire('Operación abierta', instrumento, 'success')
+    await cargarHistorial()
+  }
+}
+
+window.cerrarOperacion = async function () {
+  if (!usuarioActual) return
+  const instrumento = document.getElementById('instrumento').value
+  const fecha = new Date().toISOString()
+
+  const { error } = await supabase
+    .from('operaciones')
+    .insert([{ usuario_id: usuarioActual.id, instrumento, tipo: 'venta', estado: 'cerrada', fecha }])
+
+  if (!error) {
+    Swal.fire('Operación cerrada', instrumento, 'success')
+    await cargarHistorial()
+  }
+}
+
+window.retirarFondos = async function () {
+  if (!usuarioActual) return
+  const cantidad = 20
+  const nuevoSaldo = usuarioActual.saldo - cantidad
+
+  const { error } = await supabase
+    .from('usuarios')
+    .update({ saldo: nuevoSaldo })
+    .eq('id', usuarioActual.id)
+
+  if (!error) {
+    usuarioActual.saldo = nuevoSaldo
+    document.getElementById('saldo').textContent = `Saldo: €${nuevoSaldo.toFixed(2)}`
+    Swal.fire('Retiro exitoso', `Has retirado €${cantidad}`, 'info')
+  }
+}
