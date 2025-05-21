@@ -2,7 +2,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const supabase = createClient(
   'https://fmhnzooghyfltnkjiwzf.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...FrA' // reemplaza con tu clave pública real
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...FrA' // usa tu clave real pública
 )
 
 let usuarioActual = null
@@ -28,6 +28,7 @@ window.login = async function () {
   document.getElementById('app').classList.remove('hidden')
   document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
   cargarHistorial()
+  cambiarInstrumento()
 }
 
 window.abrirOperacion = async function () {
@@ -103,7 +104,3 @@ window.cambiarInstrumento = function () {
     studies: ['MACD@tv-basicstudies'],
   })
 }
-
-window.addEventListener('load', () => {
-  cambiarInstrumento()
-})
