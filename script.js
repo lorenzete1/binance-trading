@@ -7,7 +7,6 @@ const supabase = createClient(
 
 let usuarioActual = null
 
-
 window.addEventListener('DOMContentLoaded', async () => {
   const savedEmail = localStorage.getItem('email')
   const savedPassword = localStorage.getItem('password')
@@ -43,37 +42,11 @@ async function login(email = null, password = null) {
   cambiarInstrumento()
   cargarHistorial()
 }
-
-window.login = login;
-
-  const email = document.getElementById('username').value
-  const password = document.getElementById('password').value
-
-  const { data, error } = await supabase
-    .from('usuarios')
-    .select('*')
-    .eq('email', email)
-    .eq('password', password)
-    .single()
-
-  if (error || !data) {
-    document.getElementById('login-error').textContent = 'Credenciales incorrectas'
-    return
-  }
-
-  usuarioActual = data
-  document.getElementById('login').classList.add('hidden')
-  document.getElementById('app').classList.remove('hidden')
-  document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
-  cambiarInstrumento()
-  cargarHistorial()
-}
+window.login = login
 
 window.logout = function () {
   localStorage.removeItem('email');
   localStorage.removeItem('password');
-
-  usuarioActual = null
   document.getElementById('app').classList.add('hidden')
   document.getElementById('login').classList.remove('hidden')
 }
@@ -100,55 +73,57 @@ window.cambiarInstrumento = function () {
 }
 
 window.abrirOperacion = async function () {
-  if (!usuarioActual) return
   const instrumento = document.getElementById('instrumento').value
   const fecha = new Date().toISOString()
+  const costo = 10
+
+  if (usuarioActual.saldo < costo) {
+    Swal.fire('Saldo insuficiente', '', 'error')
+    return
+  }
 
   const { error } = await supabase
     .from('operaciones')
     .insert([{ usuario_id: usuarioActual.id, instrumento, tipo: 'compra', estado: 'abierta', fecha }])
 
   if (!error) {
+    usuarioActual.saldo -= costo
+    await supabase.from('usuarios').update({ saldo: usuarioActual.saldo }).eq('id', usuarioActual.id)
+    document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
     await cargarHistorial()
   }
 }
 
 window.cerrarOperacion = async function () {
-  if (!usuarioActual) return
   const instrumento = document.getElementById('instrumento').value
   const fecha = new Date().toISOString()
+  const ganancia = 15
 
   const { error } = await supabase
     .from('operaciones')
     .insert([{ usuario_id: usuarioActual.id, instrumento, tipo: 'venta', estado: 'cerrada', fecha }])
 
   if (!error) {
+    usuarioActual.saldo += ganancia
+    await supabase.from('usuarios').update({ saldo: usuarioActual.saldo }).eq('id', usuarioActual.id)
+    document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
     await cargarHistorial()
   }
 }
 
 window.retirarFondos = async function () {
-  if (!usuarioActual) return
   const cantidad = 20
-  const nuevoSaldo = usuarioActual.saldo - cantidad
-
-  const { error } = await supabase
-    .from('usuarios')
-    .update({ saldo: nuevoSaldo })
-    .eq('id', usuarioActual.id)
-
-  if (!error) {
-    usuarioActual.saldo = nuevoSaldo
-    document.getElementById('saldo').textContent = `Saldo: €${nuevoSaldo.toFixed(2)}`
-  }
+  usuarioActual.saldo -= cantidad
+  await supabase.from('usuarios').update({ saldo: usuarioActual.saldo }).eq('id', usuarioActual.id)
+  document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
 }
 
-async function cargarHistorial() {
+async function cargarHistorial(orden = 'fecha.desc') {
   const { data } = await supabase
     .from('operaciones')
     .select('*')
     .eq('usuario_id', usuarioActual.id)
-    .order('fecha', { ascending: false })
+    .order(orden.split('.')[0], { ascending: orden.split('.')[1] !== 'desc' })
 
   const lista = document.getElementById('historial')
   lista.innerHTML = ''
@@ -161,75 +136,21 @@ async function cargarHistorial() {
   }
 }
 
-
-window.abrirOperacion = async function () {
-  if (!usuarioActual) return
-
-  const { value: formValues } = await Swal.fire({
-    title: 'Nueva operación',
-    html: `
-      <label>Instrumento:</label>
-      <select id="instrumento-op" class="swal2-input">
-        <optgroup label="Criptomonedas">
-          <option value="BINANCE:BTCUSDT">BTC/USDT</option>
-          <option value="BINANCE:ETHUSDT">ETH/USDT</option>
-          <option value="BINANCE:BNBUSDT">BNB/USDT</option>
-          <option value="BINANCE:XRPUSDT">XRP/USDT</option>
-        </optgroup>
-        <optgroup label="Mercado Americano">
-          <option value="NASDAQ:AAPL">Apple (AAPL)</option>
-          <option value="NASDAQ:TSLA">Tesla (TSLA)</option>
-          <option value="NASDAQ:AMZN">Amazon (AMZN)</option>
-        </optgroup>
-        <optgroup label="Mercado Chino">
-          <option value="NYSE:BABA">Alibaba (BABA)</option>
-          <option value="NASDAQ:JD">JD.com (JD)</option>
-          <option value="NYSE:NIO">NIO (NIO)</option>
-        </optgroup>
-      </select>
-      <label>Lotaje:</label>
-      <input type="number" id="lotaje" class="swal2-input" min="1" placeholder="Ej: 1" />
-    `,
-    confirmButtonText: 'Confirmar operación',
-    focusConfirm: false,
-    preConfirm: () => {
-      return {
-        instrumento: document.getElementById('instrumento-op').value,
-        lotaje: parseFloat(document.getElementById('lotaje').value)
-      }
+window.organizarHistorial = function () {
+  Swal.fire({
+    title: 'Ordenar historial por...',
+    input: 'select',
+    inputOptions: {
+      'fecha.desc': 'Fecha descendente',
+      'fecha.asc': 'Fecha ascendente',
+      'instrumento.asc': 'Instrumento A-Z',
+      'tipo.asc': 'Tipo de operación'
+    },
+    inputPlaceholder: 'Selecciona un criterio',
+    showCancelButton: true,
+  }).then(result => {
+    if (result.value) {
+      cargarHistorial(result.value)
     }
   })
-
-  if (!formValues || isNaN(formValues.lotaje)) {
-    Swal.fire('Operación cancelada', '', 'info')
-    return
-  }
-
-  const fecha = new Date().toISOString()
-  const costo = formValues.lotaje * 10
-
-  if (usuarioActual.saldo < costo) {
-    Swal.fire('Saldo insuficiente', 'No tienes suficiente saldo.', 'error')
-    return
-  }
-
-  const { error } = await supabase
-    .from('operaciones')
-    .insert([{
-      usuario_id: usuarioActual.id,
-      instrumento: formValues.instrumento,
-      tipo: 'compra',
-      estado: 'abierta',
-      fecha,
-      lotaje: formValues.lotaje
-    }])
-
-  if (!error) {
-    usuarioActual.saldo -= costo
-    await supabase.from('usuarios').update({ saldo: usuarioActual.saldo }).eq('id', usuarioActual.id)
-    document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
-    cambiarInstrumento(formValues.instrumento)
-    cargarHistorial()
-    Swal.fire('Operación abierta', `${formValues.instrumento} x${formValues.lotaje}`, 'success')
-  }
 }
