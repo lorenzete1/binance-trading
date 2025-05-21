@@ -1,7 +1,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
 const supabaseUrl = 'https://fmhnzooghyfltnkjiwzf.supabase.co'
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...FrA'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtaG56b29naHlmbHRua2ppd3pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc4Mzg3ODcsImV4cCI6MjA2MzQxNDc4N30.-5zCQNWfj9BiME2NSIwtAocIvvNn8NvY1f0CKwmeFrA'
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 let usuarioActual = null
@@ -25,41 +25,9 @@ window.login = async function () {
   usuarioActual = data
   document.getElementById('login').classList.add('hidden')
   document.getElementById('app').classList.remove('hidden')
+
   document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
-
   cargarHistorial()
-
-  if (usuarioActual.es_admin) {
-    const adminPanel = document.createElement('button')
-    adminPanel.textContent = 'Zona Admin'
-    adminPanel.onclick = abrirZonaAdmin
-    document.querySelector('header').appendChild(adminPanel)
-  }
-
-  mostrarFormularioCambioPassword()
-}
-
-function mostrarFormularioCambioPassword() {
-  const contenedor = document.createElement('div')
-  contenedor.innerHTML = `
-    <h3>Cambiar contraseña</h3>
-    <input type="password" id="nuevaPassword" placeholder="Nueva contraseña" />
-    <button onclick="cambiarPassword()">Guardar</button>
-    <p id="cambio-pass-msg"></p>
-  `
-  document.getElementById('app').appendChild(contenedor)
-}
-
-window.cambiarPassword = async function () {
-  const nuevaPassword = document.getElementById('nuevaPassword').value
-  const { error } = await supabase
-    .from('usuarios')
-    .update({ password: nuevaPassword })
-    .eq('id', usuarioActual.id)
-
-  document.getElementById('cambio-pass-msg').textContent = error
-    ? 'Error al cambiar contraseña'
-    : 'Contraseña actualizada correctamente'
 }
 
 window.abrirOperacion = async function () {
@@ -78,28 +46,15 @@ window.abrirOperacion = async function () {
 
 window.cerrarOperacion = async function () {
   const instrumento = document.getElementById('instrumento').value
+  const fecha = new Date().toISOString()
 
-  const { data: abiertas } = await supabase
+  const { error } = await supabase
     .from('operaciones')
-    .select('*')
-    .eq('usuario_id', usuarioActual.id)
-    .eq('instrumento', instrumento)
-    .eq('estado', 'abierta')
-    .order('fecha', { ascending: false })
-    .limit(1)
+    .insert([{ usuario_id: usuarioActual.id, instrumento, tipo: 'venta', fecha, estado: 'cerrada' }])
 
-  if (abiertas.length > 0) {
-    const idOperacion = abiertas[0].id
-
-    const { error } = await supabase
-      .from('operaciones')
-      .update({ estado: 'cerrada', fecha_cierre: new Date().toISOString() })
-      .eq('id', idOperacion)
-
-    if (!error) {
-      await actualizarSaldo(15)
-      cargarHistorial()
-    }
+  if (!error) {
+    await actualizarSaldo(15)
+    cargarHistorial()
   }
 }
 
@@ -121,23 +76,21 @@ async function actualizarSaldo(cambio) {
 }
 
 async function cargarHistorial() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('operaciones')
     .select('*')
     .eq('usuario_id', usuarioActual.id)
     .order('fecha', { ascending: false })
 
+  if (error || !data) return
+
   const lista = document.getElementById('historial')
   lista.innerHTML = ''
   data.forEach(op => {
     const li = document.createElement('li')
-    li.textContent = `${op.tipo.toUpperCase()} - ${op.instrumento} - ${op.estado.toUpperCase()} - ${new Date(op.fecha).toLocaleString()}`
+    li.textContent = `${op.tipo.toUpperCase()} - ${op.instrumento} - ${new Date(op.fecha).toLocaleString()} - ${op.estado}`
     lista.appendChild(li)
   })
-}
-
-function abrirZonaAdmin() {
-  alert('Aquí podrás editar operaciones y saldos manualmente (a implementar)')
 }
 
 window.cambiarInstrumento = function () {

@@ -1,31 +1,28 @@
+
 body {
-  background-color: #121212;
-  color: #fff;
   font-family: Arial, sans-serif;
   margin: 0;
-  padding: 0;
+  background-color: #121212;
+  color: #ffffff;
 }
+.hidden { display: none; }
 .login-container, .app-container {
   max-width: 600px;
-  margin: 0 auto;
+  margin: auto;
   padding: 20px;
 }
-input, select, button {
+input, button, select {
   display: block;
+  width: 100%;
   margin: 10px 0;
   padding: 10px;
-  width: 100%;
-  border-radius: 5px;
-  border: none;
+  font-size: 16px;
 }
-button {
-  background-color: #f0b90b;
-  color: #000;
-  cursor: pointer;
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.grafico {
-  height: 400px;
-}
-.hidden {
-  display: none;
-}
+.grafico { margin: 20px 0; }
+ul { list-style: none; padding: 0; }
+li { margin-bottom: 5px; }
