@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Binance Trading</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://s3.tradingview.com/tv.js"></script>
   <script type="module" src="script.js"></script>
 </head>
 <body>
-  <div id="login" class="centered">
+  <div id="login" class="centered fade-in">
+    <img src="https://cryptologos.cc/logos/binance-coin-bnb-logo.png" alt="Binance Logo" width="100" />
     <h1>Iniciar sesión</h1>
     <input type="text" id="username" placeholder="Email" />
     <input type="password" id="password" placeholder="Contraseña" />
@@ -17,8 +19,9 @@
     <p id="login-error" class="error"></p>
   </div>
 
-  <div id="app" class="hidden">
+  <div id="app" class="hidden fade-in">
     <header>
+      <img src="https://cryptologos.cc/logos/binance-coin-bnb-logo.png" alt="Binance Logo" width="40" />
       <h1>Binance Trading</h1>
       <span id="saldo">Saldo: €0.00</span>
     </header>

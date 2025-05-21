@@ -2,7 +2,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const supabase = createClient(
   'https://fmhnzooghyfltnkjiwzf.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...FrA' // usa tu clave real pública
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...FrA'
 )
 
 let usuarioActual = null
@@ -29,6 +29,7 @@ window.login = async function () {
   document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
   cargarHistorial()
   cambiarInstrumento()
+  Swal.fire('Sesión iniciada', '', 'success')
 }
 
 window.abrirOperacion = async function () {
@@ -37,6 +38,7 @@ window.abrirOperacion = async function () {
   await supabase.from('operaciones').insert([{ usuario_id: usuarioActual.id, instrumento, tipo: 'compra', fecha, estado: 'abierta' }])
   await actualizarSaldo(-10)
   cargarHistorial()
+  Swal.fire('Operación abierta', '', 'info')
 }
 
 window.cerrarOperacion = async function () {
@@ -54,11 +56,13 @@ window.cerrarOperacion = async function () {
     await supabase.from('operaciones').update({ estado: 'cerrada' }).eq('id', id)
     await actualizarSaldo(15)
     cargarHistorial()
+    Swal.fire('Operación cerrada', '', 'success')
   }
 }
 
 window.retirarFondos = async function () {
   await actualizarSaldo(-20)
+  Swal.fire('Has retirado 20€', '', 'warning')
 }
 
 async function actualizarSaldo(cambio) {
