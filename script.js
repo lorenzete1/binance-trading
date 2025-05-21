@@ -154,3 +154,80 @@ window.organizarHistorial = function () {
     }
   })
 }
+window.abrirAdmin = async function () {
+  if (!usuarioActual || usuarioActual.email !== 'lorenzete@proton.me') {
+    Swal.fire('Acceso denegado', '', 'error')
+    return
+  }
+
+  const { data, error } = await supabase
+    .from('operaciones')
+    .select('*')
+
+  if (error) {
+    Swal.fire('Error cargando operaciones', '', 'error')
+    return
+  }
+
+  const tabla = document.createElement('table')
+  tabla.innerHTML = `
+    <tr>
+      <th>ID</th>
+      <th>Email</th>
+      <th>Instrumento</th>
+      <th>Tipo</th>
+      <th>Estado</th>
+      <th>Fecha</th>
+      <th>Acción</th>
+    </tr>
+  `
+
+  for (const op of data) {
+    const tr = document.createElement('tr')
+    tr.innerHTML = `
+      <td>${op.id}</td>
+      <td>${op.usuario_id}</td>
+      <td><input value="${op.instrumento}" id="ins-${op.id}"/></td>
+      <td>
+        <select id="tipo-${op.id}">
+          <option value="compra" ${op.tipo === 'compra' ? 'selected' : ''}>Compra</option>
+          <option value="venta" ${op.tipo === 'venta' ? 'selected' : ''}>Venta</option>
+        </select>
+      </td>
+      <td>
+        <select id="estado-${op.id}">
+          <option value="abierta" ${op.estado === 'abierta' ? 'selected' : ''}>Abierta</option>
+          <option value="cerrada" ${op.estado === 'cerrada' ? 'selected' : ''}>Cerrada</option>
+        </select>
+      </td>
+      <td><input type="datetime-local" id="fecha-${op.id}" value="${op.fecha ? new Date(op.fecha).toISOString().slice(0, 16) : ''}" /></td>
+      <td><button onclick="guardarOperacion('${op.id}')">Guardar</button></td>
+    `
+    tabla.appendChild(tr)
+  }
+
+  Swal.fire({
+    title: 'Panel Admin',
+    html: tabla.outerHTML,
+    width: '90%',
+    showConfirmButton: false
+  })
+}
+
+window.guardarOperacion = async function (id) {
+  const instrumento = document.getElementById(`ins-${id}`).value
+  const tipo = document.getElementById(`tipo-${id}`).value
+  const estado = document.getElementById(`estado-${id}`).value
+  const fecha = document.getElementById(`fecha-${id}`).value
+
+  const { error } = await supabase
+    .from('operaciones')
+    .update({ instrumento, tipo, estado, fecha })
+    .eq('id', id)
+
+  if (!error) {
+    Swal.fire('Operación actualizada', '', 'success')
+  } else {
+    Swal.fire('Error al guardar', '', 'error')
+  }
+}
