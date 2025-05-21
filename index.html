@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Binance Trading - Simulador</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="login" class="login-container">
+    <h2>Iniciar sesión</h2>
+    <input type="text" id="username" placeholder="Usuario" />
+    <input type="password" id="password" placeholder="Contraseña" />
+    <button onclick="login()">Entrar</button>
+    <p id="login-error"></p>
+  </div>
+
+  <div id="app" class="app-container hidden">
+    <header>
+      <h1>Cuenta de Mario</h1>
+      <span id="saldo">Saldo: €250.00</span>
+      <button onclick="retirarFondos()">Retirar Fondos</button>
+    </header>
+
+    <section>
+      <label for="instrumento">Instrumento:</label>
+      <select id="instrumento" onchange="cambiarInstrumento()">
+        <option value="BTCUSD">BTC/USD</option>
+        <option value="ETHUSD">ETH/USD</option>
+        <option value="AAPL">AAPL</option>
+        <option value="EURUSD">EUR/USD</option>
+      </select>
+    </section>
+
+    <section class="grafico">
+      <div id="tradingview-widget"></div>
+    </section>
+
+    <section class="operaciones">
+      <button onclick="abrirOperacion()">Abrir operación</button>
+      <button onclick="cerrarOperacion()">Cerrar operación</button>
+    </section>
+
+    <section>
+      <h3>Historial de Operaciones</h3>
+      <ul id="historial"></ul>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
