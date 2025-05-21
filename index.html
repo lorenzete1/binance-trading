@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Binance Trading</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://s3.tradingview.com/tv.js"></script>
   <script type="module" src="script.js"></script>
 </head>
 <body>
@@ -18,8 +20,38 @@
   </div>
 
   <div id="app" class="hidden">
-    <h2>Bienvenido</h2>
-    <p id="saldo">Saldo: €0.00</p>
+    <header>
+      <img src="binance-logo.png" alt="Logo" width="40" />
+      <h1>Binance Trading</h1>
+      <span id="saldo">Saldo: €0.00</span>
+      <button onclick="logout()">Cerrar sesión</button>
+      <button onclick="cambiarPassword()">Cambiar contraseña</button>
+      <button onclick="abrirAdmin()">Zona Admin</button>
+      <button onclick="verResumenSemanal()">Resumen semanal</button>
+    </header>
+
+    <main>
+      <section class="grafico">
+        <select id="instrumento" onchange="cambiarInstrumento()">
+          <option value="BINANCE:BTCUSDT">BTC/USDT</option>
+          <option value="BINANCE:ETHUSDT">ETH/USDT</option>
+        </select>
+        <div id="tradingview-widget"></div>
+      </section>
+
+      <section class="acciones">
+        <button onclick="abrirOperacion()">Abrir operación</button>
+        <button onclick="cerrarOperacion()">Cerrar operación</button>
+        <button onclick="retirarFondos()">Retirar fondos</button>
+      </section>
+
+      <section class="historial">
+        <h3>Historial</h3>
+        <ul id="historial"></ul>
+      </section>
+    </main>
+
+    <footer>&copy; 2025 Binance Trading</footer>
   </div>
 </body>
 </html>
