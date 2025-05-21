@@ -10,6 +10,7 @@
   <script type="module" src="script.js"></script>
 </head>
 <body>
+  <!-- FORMULARIO DE LOGIN -->
   <div id="login" class="centered fade-in">
     <img src="binance-logo.png" alt="Binance Logo" width="100" />
     <h1>Iniciar sesión</h1>
@@ -19,11 +20,13 @@
     <p id="login-error" class="error"></p>
   </div>
 
+  <!-- INTERFAZ PRINCIPAL -->
   <div id="app" class="hidden fade-in">
     <header>
       <img src="binance-logo.png" alt="Binance Logo" width="40" />
       <h1>Binance Trading</h1>
       <span id="saldo">Saldo: €0.00</span>
+      <button onclick="logout()" class="logout">Cerrar sesión</button>
     </header>
 
     <main>

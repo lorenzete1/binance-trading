@@ -10,7 +10,6 @@ let usuarioActual = null
 window.login = async function () {
   const user = document.getElementById('username').value.trim()
   const pass = document.getElementById('password').value.trim()
-  console.log("Probando login con:", user, pass)
 
   const { data, error } = await supabase
     .from('usuarios')
@@ -21,19 +20,25 @@ window.login = async function () {
 
   if (error || !data) {
     document.getElementById('login-error').textContent = 'Usuario o contraseña incorrectos'
-    console.log("Error de Supabase:", error)
     return
   }
 
-  console.log("Login exitoso:", data)
   usuarioActual = data
-  const loginDiv = document.getElementById('login');
-  loginDiv.parentNode.removeChild(loginDiv);
+  document.getElementById('login').classList.add('hidden')
   document.getElementById('app').classList.remove('hidden')
   document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
   cargarHistorial()
   cambiarInstrumento()
   Swal.fire('Sesión iniciada', '', 'success')
+}
+
+window.logout = function () {
+  usuarioActual = null
+  document.getElementById('app').classList.add('hidden')
+  document.getElementById('login').classList.remove('hidden')
+  document.getElementById('username').value = ''
+  document.getElementById('password').value = ''
+  document.getElementById('login-error').textContent = ''
 }
 
 async function cargarHistorial() {
@@ -52,4 +57,24 @@ async function cargarHistorial() {
       lista.appendChild(li)
     })
   }
+}
+
+window.cambiarInstrumento = function () {
+  const instrumento = document.getElementById('instrumento').value
+  document.getElementById('tradingview-widget').innerHTML = ''
+
+  new TradingView.widget({
+    container_id: 'tradingview-widget',
+    width: '100%',
+    height: 400,
+    symbol: instrumento,
+    interval: 'D',
+    theme: 'dark',
+    style: '1',
+    locale: 'es',
+    enable_publishing: false,
+    hide_side_toolbar: false,
+    allow_symbol_change: true,
+    studies: ['MACD@tv-basicstudies'],
+  })
 }
