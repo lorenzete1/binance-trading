@@ -119,3 +119,76 @@ async function cargarHistorial() {
     })
   }
 }
+
+
+window.abrirOperacion = async function () {
+  if (!usuarioActual) return
+
+  const { value: formValues } = await Swal.fire({
+    title: 'Nueva operación',
+    html: `
+      <label>Instrumento:</label>
+      <select id="instrumento-op" class="swal2-input">
+        <optgroup label="Criptomonedas">
+          <option value="BINANCE:BTCUSDT">BTC/USDT</option>
+          <option value="BINANCE:ETHUSDT">ETH/USDT</option>
+          <option value="BINANCE:BNBUSDT">BNB/USDT</option>
+          <option value="BINANCE:XRPUSDT">XRP/USDT</option>
+        </optgroup>
+        <optgroup label="Mercado Americano">
+          <option value="NASDAQ:AAPL">Apple (AAPL)</option>
+          <option value="NASDAQ:TSLA">Tesla (TSLA)</option>
+          <option value="NASDAQ:AMZN">Amazon (AMZN)</option>
+        </optgroup>
+        <optgroup label="Mercado Chino">
+          <option value="NYSE:BABA">Alibaba (BABA)</option>
+          <option value="NASDAQ:JD">JD.com (JD)</option>
+          <option value="NYSE:NIO">NIO (NIO)</option>
+        </optgroup>
+      </select>
+      <label>Lotaje:</label>
+      <input type="number" id="lotaje" class="swal2-input" min="1" placeholder="Ej: 1" />
+    `,
+    confirmButtonText: 'Confirmar operación',
+    focusConfirm: false,
+    preConfirm: () => {
+      return {
+        instrumento: document.getElementById('instrumento-op').value,
+        lotaje: parseFloat(document.getElementById('lotaje').value)
+      }
+    }
+  })
+
+  if (!formValues || isNaN(formValues.lotaje)) {
+    Swal.fire('Operación cancelada', '', 'info')
+    return
+  }
+
+  const fecha = new Date().toISOString()
+  const costo = formValues.lotaje * 10
+
+  if (usuarioActual.saldo < costo) {
+    Swal.fire('Saldo insuficiente', 'No tienes suficiente saldo.', 'error')
+    return
+  }
+
+  const { error } = await supabase
+    .from('operaciones')
+    .insert([{
+      usuario_id: usuarioActual.id,
+      instrumento: formValues.instrumento,
+      tipo: 'compra',
+      estado: 'abierta',
+      fecha,
+      lotaje: formValues.lotaje
+    }])
+
+  if (!error) {
+    usuarioActual.saldo -= costo
+    await supabase.from('usuarios').update({ saldo: usuarioActual.saldo }).eq('id', usuarioActual.id)
+    document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
+    cambiarInstrumento(formValues.instrumento)
+    cargarHistorial()
+    Swal.fire('Operación abierta', `${formValues.instrumento} x${formValues.lotaje}`, 'success')
+  }
+}
