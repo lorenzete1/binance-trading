@@ -8,6 +8,7 @@ const supabase = createClient(
 let usuarioActual = null
 
 window.login = async function () {
+  console.log('Login function registrada correctamente')
   const user = document.getElementById('username').value.trim()
   const pass = document.getElementById('password').value.trim()
 
@@ -41,7 +42,46 @@ window.logout = function () {
   document.getElementById('login-error').textContent = ''
 }
 
+// función de historial con cierre
 async function cargarHistorial() {
+  const { data } = await supabase
+    .from('operaciones')
+    .select('*')
+    .eq('usuario_id', usuarioActual.id)
+    .order('fecha', { ascending: false })
+
+  const lista = document.getElementById('historial')
+  lista.innerHTML = ''
+  if (data) {
+    data.forEach(op => {
+      const li = document.createElement('li')
+      li.innerHTML = `${op.tipo.toUpperCase()} - ${op.instrumento} - ${op.estado} - ${op.lotaje || 1} lote(s) 
+        SL: ${op.stop_loss || '-'} TP: ${op.take_profit || '-'} - ${new Date(op.fecha).toLocaleString()}
+        ${op.estado === 'abierta' ? '<button onclick="cerrarManualOperacion(\'' + op.id + '\', ' + (op.lotaje || 1) + ')">Cerrar</button>' : ''}`
+      lista.appendChild(li)
+    })
+  }
+}
+
+window.cerrarManualOperacion = async function (id, lotaje = 1) {
+  const { error } = await supabase
+    .from('operaciones')
+    .update({ estado: 'cerrada', tipo: 'venta' })
+    .eq('id', id)
+
+  if (!error) {
+    const ganancia = lotaje * 15
+    usuarioActual.saldo += ganancia
+    await supabase
+      .from('usuarios')
+      .update({ saldo: usuarioActual.saldo })
+      .eq('id', usuarioActual.id)
+
+    document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
+    Swal.fire('Operación cerrada', `Ganancia: €${ganancia}`, 'success')
+    await cargarHistorial()
+  }
+}
   const { data } = await supabase
     .from('operaciones')
     .select('*')
