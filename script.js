@@ -7,7 +7,45 @@ const supabase = createClient(
 
 let usuarioActual = null
 
-window.login = async function () {
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const savedEmail = localStorage.getItem('email')
+  const savedPassword = localStorage.getItem('password')
+  if (savedEmail && savedPassword) {
+    await login(savedEmail, savedPassword)
+  }
+})
+
+async function login(email = null, password = null) {
+  if (!email || !password) {
+    email = document.getElementById('username').value
+    password = document.getElementById('password').value
+  }
+
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('*')
+    .eq('email', email)
+    .eq('password', password)
+    .single()
+
+  if (error || !data) {
+    document.getElementById('login-error').textContent = 'Credenciales incorrectas'
+    return
+  }
+
+  usuarioActual = data
+  localStorage.setItem('email', email)
+  localStorage.setItem('password', password)
+  document.getElementById('login').classList.add('hidden')
+  document.getElementById('app').classList.remove('hidden')
+  document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
+  cambiarInstrumento()
+  cargarHistorial()
+}
+
+window.login = login;
+
   const email = document.getElementById('username').value
   const password = document.getElementById('password').value
 
@@ -32,6 +70,9 @@ window.login = async function () {
 }
 
 window.logout = function () {
+  localStorage.removeItem('email');
+  localStorage.removeItem('password');
+
   usuarioActual = null
   document.getElementById('app').classList.add('hidden')
   document.getElementById('login').classList.remove('hidden')
