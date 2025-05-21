@@ -39,3 +39,17 @@ input {
 .grafico, .acciones, .historial, .dashboard {
   margin-top: 20px;
 }
+
+#crypto-ticker {
+  display: flex;
+  overflow-x: auto;
+  background-color: #1e2329;
+  padding: 10px;
+  gap: 20px;
+  justify-content: center;
+}
+.ticker-item {
+  color: #fcd535;
+  font-weight: bold;
+  font-size: 1rem;
+}

@@ -312,3 +312,11 @@ window.guardarOperacion = async function (id) {
     Swal.fire('Error al guardar', '', 'error')
   }
 }
+
+setInterval(() => {
+  document.getElementById('price-btc').textContent = `$${(25000 + Math.random() * 1000).toFixed(2)}`
+  document.getElementById('price-eth').textContent = `$${(1700 + Math.random() * 50).toFixed(2)}`
+  document.getElementById('price-bnb').textContent = `$${(300 + Math.random() * 10).toFixed(2)}`
+  document.getElementById('price-xrp').textContent = `$${(0.5 + Math.random() * 0.05).toFixed(2)}`
+  document.getElementById('price-sol').textContent = `$${(20 + Math.random() * 5).toFixed(2)}`
+}, 3000)
