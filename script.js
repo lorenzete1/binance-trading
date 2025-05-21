@@ -80,7 +80,61 @@ window.cambiarInstrumento = function () {
 }
 
 
+// nueva versión avanzada
 window.abrirOperacion = async function () {
+  if (!usuarioActual) return
+
+  const { value: formValues } = await Swal.fire({
+    title: 'Nueva Operación',
+    html:
+      '<select id="tipo" class="swal2-input"><option value="compra">Compra</option><option value="venta">Venta</option></select>' +
+      '<input id="lotaje" type="number" class="swal2-input" placeholder="Lotaje (ej: 1)">' +
+      '<input id="sl" type="number" class="swal2-input" placeholder="Stop Loss (ej: 24000)">' +
+      '<input id="tp" type="number" class="swal2-input" placeholder="Take Profit (ej: 28000)">',
+    focusConfirm: false,
+    preConfirm: () => {
+      return {
+        tipo: document.getElementById('tipo').value,
+        lotaje: parseFloat(document.getElementById('lotaje').value),
+        sl: parseFloat(document.getElementById('sl').value),
+        tp: parseFloat(document.getElementById('tp').value)
+      }
+    }
+  })
+
+  if (!formValues || isNaN(formValues.lotaje)) return
+
+  const instrumento = document.getElementById('instrumento').value
+  const fecha = new Date().toISOString()
+  const coste = formValues.lotaje * 10
+
+  if (usuarioActual.saldo < coste) {
+    Swal.fire('Saldo insuficiente', '', 'error')
+    return
+  }
+
+  const { error } = await supabase
+    .from('operaciones')
+    .insert([{
+      usuario_id: usuarioActual.id,
+      instrumento,
+      tipo: formValues.tipo,
+      lotaje: formValues.lotaje,
+      stop_loss: formValues.sl,
+      take_profit: formValues.tp,
+      estado: 'abierta',
+      fecha
+    }])
+
+  if (!error) {
+    usuarioActual.saldo -= coste
+    document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
+    await supabase.from('usuarios').update({ saldo: usuarioActual.saldo }).eq('id', usuarioActual.id)
+    Swal.fire('Operación abierta', `${formValues.tipo} ${instrumento}`, 'success')
+    playSound(formValues.tipo)
+    await cargarHistorial()
+  }
+}
   if (!usuarioActual) return
   const instrumento = document.getElementById('instrumento').value
   const fecha = new Date().toISOString()
@@ -147,6 +201,10 @@ function playSound(tipo) {
 
 // Panel admin
 window.abrirAdmin = async function () {
+  if (!usuarioActual || usuarioActual.email !== 'lorenzete@proton.me') {
+    Swal.fire('Acceso denegado', '', 'error')
+    return
+  }
   if (!usuarioActual?.es_admin) return
   const { data } = await supabase.from('usuarios').select('*')
   if (!data) return
