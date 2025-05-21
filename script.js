@@ -38,7 +38,17 @@ async function login(email = null, password = null) {
   localStorage.setItem('password', password)
   document.getElementById('login').classList.add('hidden')
   document.getElementById('app').classList.remove('hidden')
-  document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
+  
+const refreshedUser = await supabase
+  .from('usuarios')
+  .select('*')
+  .eq('id', usuarioActual.id)
+  .single();
+if (refreshedUser.data) {
+  usuarioActual.saldo = refreshedUser.data.saldo;
+  document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`;
+}
+
   cambiarInstrumento()
   cargarHistorial()
 }
@@ -89,7 +99,17 @@ window.abrirOperacion = async function () {
   if (!error) {
     usuarioActual.saldo -= costo
     await supabase.from('usuarios').update({ saldo: usuarioActual.saldo }).eq('id', usuarioActual.id)
-    document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
+    
+const refreshedUser = await supabase
+  .from('usuarios')
+  .select('*')
+  .eq('id', usuarioActual.id)
+  .single();
+if (refreshedUser.data) {
+  usuarioActual.saldo = refreshedUser.data.saldo;
+  document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`;
+}
+
     await cargarHistorial()
   }
 }
@@ -106,7 +126,17 @@ window.cerrarOperacion = async function () {
   if (!error) {
     usuarioActual.saldo += ganancia
     await supabase.from('usuarios').update({ saldo: usuarioActual.saldo }).eq('id', usuarioActual.id)
-    document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
+    
+const refreshedUser = await supabase
+  .from('usuarios')
+  .select('*')
+  .eq('id', usuarioActual.id)
+  .single();
+if (refreshedUser.data) {
+  usuarioActual.saldo = refreshedUser.data.saldo;
+  document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`;
+}
+
     await cargarHistorial()
   }
 }
@@ -115,7 +145,17 @@ window.retirarFondos = async function () {
   const cantidad = 20
   usuarioActual.saldo -= cantidad
   await supabase.from('usuarios').update({ saldo: usuarioActual.saldo }).eq('id', usuarioActual.id)
-  document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
+  
+const refreshedUser = await supabase
+  .from('usuarios')
+  .select('*')
+  .eq('id', usuarioActual.id)
+  .single();
+if (refreshedUser.data) {
+  usuarioActual.saldo = refreshedUser.data.saldo;
+  document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`;
+}
+
 }
 
 async function cargarHistorial(orden = 'fecha.desc') {
@@ -191,7 +231,17 @@ window.retirarFondos = async function () {
     .eq('id', usuarioActual.id)
 
   if (!error) {
-    document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`
+    
+const refreshedUser = await supabase
+  .from('usuarios')
+  .select('*')
+  .eq('id', usuarioActual.id)
+  .single();
+if (refreshedUser.data) {
+  usuarioActual.saldo = refreshedUser.data.saldo;
+  document.getElementById('saldo').textContent = `Saldo: €${usuarioActual.saldo.toFixed(2)}`;
+}
+
     Swal.fire('Retiro exitoso', `Se ha retirado €${cantidad} a tu billetera Binance.`, 'success')
   }
 }
