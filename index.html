@@ -4,43 +4,51 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Binance Trading</title>
-  <link rel="stylesheet" href="style.css" />
-  <script type="module" src="script.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://s3.tradingview.com/tv.js"></script>
+  <script type="module" src="script.js"></script>
 </head>
-<body>
-  <div id="login">
-    <h2>Iniciar sesión</h2>
-    <input type="text" id="username" placeholder="Email" />
-    <input type="password" id="password" placeholder="Contraseña" />
-    <button onclick="login()">Entrar</button>
-    <p id="login-error" style="color: red;"></p>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+
+  <div id="login" class="flex flex-col items-center justify-center flex-1">
+    <h1 class="text-3xl font-bold mb-6">Iniciar sesión</h1>
+    <input id="username" class="mb-2 p-2 w-64 text-black" type="text" placeholder="Email" />
+    <input id="password" class="mb-4 p-2 w-64 text-black" type="password" placeholder="Contraseña" />
+    <button onclick="login()" class="bg-yellow-500 px-4 py-2 rounded">Entrar</button>
+    <p id="login-error" class="text-red-400 mt-4"></p>
   </div>
 
-  <div id="app" class="hidden">
-    <header>
-      <h1>Binance Trading</h1>
-      <p id="saldo">Saldo: €0.00</p>
+  <div id="app" class="hidden flex-1 flex flex-col">
+    <header class="bg-gray-800 p-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold">Binance Trading</h1>
+      <span id="saldo">Saldo: €0.00</span>
     </header>
 
-    <main>
-      <select id="instrumento" onchange="cambiarInstrumento()">
-        <option value="BINANCE:BTCUSDT">BTC/USDT</option>
-        <option value="BINANCE:ETHUSDT">ETH/USDT</option>
-      </select>
+    <main class="p-4 flex flex-col md:flex-row gap-4 flex-1">
+      <section class="w-full md:w-2/3 bg-gray-800 p-4 rounded shadow">
+        <select id="instrumento" onchange="cambiarInstrumento()" class="mb-4 p-2 w-full text-black">
+          <option value="BINANCE:BTCUSDT">BTC/USDT</option>
+          <option value="BINANCE:ETHUSDT">ETH/USDT</option>
+        </select>
+        <div id="tradingview-widget" class="h-96"></div>
+      </section>
 
-      <div id="tradingview-widget"></div>
+      <section class="w-full md:w-1/3 flex flex-col gap-4">
+        <div class="bg-gray-800 p-4 rounded shadow flex flex-col gap-2">
+          <button onclick="abrirOperacion()" class="bg-green-600 py-2 rounded">Abrir operación</button>
+          <button onclick="cerrarOperacion()" class="bg-red-600 py-2 rounded">Cerrar operación</button>
+          <button onclick="retirarFondos()" class="bg-yellow-500 py-2 rounded">Retirar fondos</button>
+        </div>
 
-      <button onclick="abrirOperacion()">Abrir operación</button>
-      <button onclick="cerrarOperacion()">Cerrar operación</button>
-      <button onclick="retirarFondos()">Retirar fondos</button>
-
-      <h3>Historial</h3>
-      <ul id="historial"></ul>
+        <div class="bg-gray-800 p-4 rounded shadow">
+          <h2 class="text-lg font-bold mb-2">Historial</h2>
+          <ul id="historial" class="text-sm space-y-1"></ul>
+        </div>
+      </section>
     </main>
 
-    <footer>
-      <p>&copy; 2025 Binance Trading</p>
+    <footer class="bg-gray-800 text-center p-2 text-sm">
+      &copy; 2025 Binance Trading
     </footer>
   </div>
 </body>
