@@ -10,28 +10,30 @@
   <script type="module" src="script.js"></script>
 </head>
 <body>
-  <div id="login">
+  <div id="login" class="centered fade-in">
     <img src="binance-logo.png" alt="Logo" width="100" />
     <h1>Iniciar sesión</h1>
-    <input type="text" id="username" placeholder="Usuario" />
+    <input type="text" id="username" placeholder="Email" />
     <input type="password" id="password" placeholder="Contraseña" />
     <button onclick="login()">Entrar</button>
     <p id="login-error" class="error"></p>
   </div>
 
-  <div id="app" class="hidden">
-    <header>
-      <img src="binance-logo.png" alt="Logo" width="40" />
+  <div id="app" class="hidden fade-in">
+    <header class="header">
+      <img src="binance-logo.png" alt="Binance Logo" width="40" />
       <h1>Binance Trading</h1>
       <span id="saldo">Saldo: €0.00</span>
-      <button onclick="logout()">Cerrar sesión</button>
-      <button onclick="cambiarPassword()">Cambiar contraseña</button>
-      <button onclick="abrirAdmin()">Zona Admin</button>
-      <button onclick="verResumenSemanal()">Resumen semanal</button>
+      <div class="user-actions">
+        <button onclick="logout()">Cerrar sesión</button>
+        <button onclick="verResumenSemanal()">Resumen</button>
+        <button onclick="abrirAdmin()">Admin</button>
+      </div>
     </header>
 
     <main>
       <section class="grafico">
+        <h2>Gráfico en vivo</h2>
         <select id="instrumento" onchange="cambiarInstrumento()">
           <option value="BINANCE:BTCUSDT">BTC/USDT</option>
           <option value="BINANCE:ETHUSDT">ETH/USDT</option>
@@ -46,8 +48,13 @@
       </section>
 
       <section class="historial">
-        <h3>Historial</h3>
+        <h3>Historial de operaciones</h3>
         <ul id="historial"></ul>
+      </section>
+
+      <section class="dashboard">
+        <h3>Estadísticas</h3>
+        <canvas id="dashboard-chart" width="400" height="200"></canvas>
       </section>
     </main>
 
